@@ -11,7 +11,7 @@ Todo:
 '''
 class S3:
 
-    def __init__(self,bucket_name):
+    def __init__(self, bucket_name):
         '''
         The name of the bucket must be passed into the S3 constructor.
         Constructor will then instantiate the boto3 client and retrieve
@@ -42,29 +42,17 @@ class S3:
                 else:
                     print(e)
     
-    def upload_model(self,model,model_name):
+    def upload_model(self, model, model_name):
         '''
         Uploades a trained model to the S3 bucket, if a model with the
         specified name does not already exists.
         '''
-        try:
-            response = self.s3.get_object(Bucket=self.bucket_name,Key=model_name)
-            raise ValueError("A model with the specified name already exists")
-        except ClientError as e:
-            if e.response['Error']['Code'] == 'NoSuchKey':
-                #This is a good sign: it means the model hasn't been pushed to S3 yet.
-                self.s3.put_object(Bucket=self.bucket_name,Key=model_name,Body=model)
+        self.s3.put_object(Bucket=self.bucket_name, Key=model_name, Body=model)
 
-    def upload_function(self,function,function_name):
+    def upload_function(self, function, function_name):
         '''
         Uploades a Lambda function to the S3 bucket, if a function with the
         specified name does not already exists.
         '''
-        try:
-            response = self.s3.get_object(Bucket=self.bucket_name,Key=model_name)
-            raise ValueError("A function with the specified name already exists")
-        except ClientError as e:
-            if e.response['Error']['Code'] == 'NoSuchKey':
-                #This is a good sign: it means the fucntion hasn't been pushed to S3 yet.
-                self.s3.put_object(Bucket=self.bucket_name,Key=model_name,Body=model)
+        self.s3.put_object(Bucket=self.bucket_name, Key=model_name, Body=model)
 
