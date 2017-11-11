@@ -28,23 +28,22 @@ class S3:
         same AWS account or another AWS account
         '''
         response = self.s3.list_buckets()
-        # We have to extract the 'Buckets' object, which contains objects for each bucket.
-        for bucket in response['Buckets']:
-            if self.bucket_name == bucket['Name']:
-                raise ValueError("A bucket named '{}' already exists under your current AWS account.".format(self.bucket_name))
-            else:
-                try:
-                    response = self.s3.create_bucket(Bucket=self.bucket_name,
+        if self.bucket_name in map(lambda x: x['Name'], response['Buckets']):
+            raise ValueError("A bucket named '{}' already exists under your current AWS account.".format(self.bucket_name))
+        else:
+            try:
+                self.s3.create_bucket(Bucket=self.bucket_name,
                             CreateBucketConfiguration={'LocationConstraint': self.region},)
-                except ClientError as e:
-                    if e.response['Error']['Code'] == 'BucketAlreadyExists':
-                        raise ValueError("Failed to create bucket '{}': already exists under separate AWS account. Try a different bucket name.".format(self.bucket_name))
-                    else:
-                        print(e)
+                print ("Bucket '{}' created.".format(self.bucket_name))
+            except ClientError as e:
+                if e.response['Error']['Code'] == 'BucketAlreadyExists':
+                    raise ValueError("Failed to create bucket '{}': already exists under separate AWS account. Try a different bucket name.".format(self.bucket_name))
+                else:
+                    print(e)
     
-    def write_model(self,model,model_name):
+    def upload_model(self,model,model_name):
         '''
-        Writes a trained model to the S3 bucket, if a model with the
+        Uploades a trained model to the S3 bucket, if a model with the
         specified name does not already exists.
         '''
         try:
