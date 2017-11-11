@@ -1,15 +1,32 @@
 import boto3
 from botocore.exceptions import ClientError
+'''
+Wrapper class for working with AWS S3. Abstracts details of
+boto3 package for the manager class.
 
-# TODO: write some docs for each function
+Todo:
+    * Example todo
+    * Modify write_model() to input data blob instead of file
 
+'''
 class S3:
 
     def __init__(self,bucket_name):
+        '''
+        The name of the bucket must be passed into the S3 constructor.
+        Constructor will then instantiate the boto3 client and retrieve
+        the region name using the boto3.session.Session class
+        '''
         self.s3 = boto3.client('s3')
         self.bucket_name = bucket_name
+        self.region = boto3.session.Session().region_name
 
-    def create(self):
+    def create_if_not_exists(self):
+        '''
+        Creates a bucket with the name passed into the constructor, if the
+        bucket does not already exists. Fails if bucket is created within
+        same AWS account or another AWS account
+        '''
         response = self.s3.list_buckets()
         # We have to extract the 'Buckets' object, which contains objects for each bucket.
         for bucket in response['Buckets']:
@@ -18,8 +35,7 @@ class S3:
             else:
                 try:
                     response = self.s3.create_bucket(Bucket=self.bucket_name,
-                            # TODO: Need to figure out how to make the region configurable.
-                            CreateBucketConfiguration={'LocationConstraint': 'us-east-2'},)
+                            CreateBucketConfiguration={'LocationConstraint': self.region},)
                 except ClientError as e:
                     if e.response['Error']['Code'] == 'BucketAlreadyExists':
                         raise ValueError("Failed to create bucket '{}': already exists under separate AWS account. Try a different bucket name.".format(self.bucket_name))
@@ -27,6 +43,10 @@ class S3:
                         print(e)
     
     def write_model(self,model,model_name):
+        '''
+        Writes a trained model to the S3 bucket, if a model with the
+        specified name does not already exists.
+        '''
         try:
             response = self.s3.get_object(Bucket=self.bucket_name,Key=model_name)
             raise ValueError("A model with the specified name already exists")
