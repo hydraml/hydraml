@@ -18,7 +18,9 @@ class S3:
         the region name using the boto3.session.Session class
         '''
         self.s3 = boto3.client('s3')
+        self.s3_res = boto3.resource('s3')
         self.bucket_name = bucket_name
+        self.bucket = self.s3_res.Bucket(self.bucket_name)
         self.region = boto3.session.Session().region_name
 
     def create_if_not_exists(self):
@@ -27,8 +29,7 @@ class S3:
         bucket does not already exists. Fails if bucket is created within
         same AWS account or another AWS account
         '''
-        response = self.s3.list_buckets()
-        if self.bucket_name in map(lambda x: x['Name'], response['Buckets']):
+        if self.bucket in self.s3_res.buckets.all():
             raise ValueError("A bucket named '{}' already exists under your current AWS account.".format(self.bucket_name))
         else:
             try:
@@ -52,5 +53,18 @@ class S3:
         except ClientError as e:
             if e.response['Error']['Code'] == 'NoSuchKey':
                 #This is a good sign: it means the model hasn't been pushed to S3 yet.
+                self.s3.put_object(Bucket=self.bucket_name,Key=model_name,Body=model)
+
+    def upload_function(self,function,function_name):
+        '''
+        Uploades a Lambda function to the S3 bucket, if a function with the
+        specified name does not already exists.
+        '''
+        try:
+            response = self.s3.get_object(Bucket=self.bucket_name,Key=model_name)
+            raise ValueError("A function with the specified name already exists")
+        except ClientError as e:
+            if e.response['Error']['Code'] == 'NoSuchKey':
+                #This is a good sign: it means the fucntion hasn't been pushed to S3 yet.
                 self.s3.put_object(Bucket=self.bucket_name,Key=model_name,Body=model)
 
