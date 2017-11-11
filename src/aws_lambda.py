@@ -1,5 +1,5 @@
 import boto3
 
-class Lambda:
+class AWSLambda:
 
     def __init__(self):
