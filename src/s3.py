@@ -49,10 +49,13 @@ class S3:
         '''
         self.s3.put_object(Bucket=self.bucket_name, Key=model_name, Body=model)
 
+        print ("Model '{}' uploaded.".format(model_name))
+
     def upload_function(self, function, function_name):
         '''
         Uploades a Lambda function to the S3 bucket, if a function with the
         specified name does not already exists.
         '''
         self.s3.put_object(Bucket=self.bucket_name, Key=model_name, Body=model)
-
+        
+        print ("Function '{}' uploaded.".format(function_name))

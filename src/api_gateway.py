@@ -106,6 +106,8 @@ class APIGateway:
             restApiId=lambda_api_id,
             stageName='stage')
 
+        print("API '{}' created.".format(self.api_name))
+
     def delete_gateway(self):
         '''
         Delete the REST API with the given name.
