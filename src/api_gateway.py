@@ -10,7 +10,7 @@ Todo:
 '''
 class APIGateway:
 
-    def __init__(self, self.api_name):
+    def __init__(self, api_name):
         '''
         Constructor will then instantiate the boto3 client and retrieve
         the region name using the boto3.session.Session class. A Lambda
@@ -18,7 +18,7 @@ class APIGateway:
         '''
         self.api = boto3.client('apigateway')
         self.aws_lambda = boto3.client('lambda')
-        self.api_name = self.api_name
+        self.api_name = api_name
         self.lambda_version = self.aws_lambda.meta.service_model.api_version
         self.region = boto3.session.Session().region_name
         self.account_id = boto3.client('sts').get_caller_identity()['Account']
