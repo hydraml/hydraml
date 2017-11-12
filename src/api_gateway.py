@@ -10,7 +10,7 @@ Todo:
 '''
 class APIGateway:
 
-    def __init__(self):
+    def __init__(self, self.api_name):
         '''
         Constructor will then instantiate the boto3 client and retrieve
         the region name using the boto3.session.Session class. A Lambda
@@ -18,11 +18,12 @@ class APIGateway:
         '''
         self.api = boto3.client('apigateway')
         self.aws_lambda = boto3.client('lambda')
+        self.api_name = self.api_name
         self.lambda_version = self.aws_lambda.meta.service_model.api_version
         self.region = boto3.session.Session().region_name
         self.account_id = boto3.client('sts').get_caller_identity()['Account']
 
-    def create_gateway(self, function_name, api_name):
+    def create_gateway(self, function_name):
         '''
         Create an API Gateway REST API, and integrate as a trigger for
         the given Lambda function. The Lambda function's name will be
@@ -31,8 +32,14 @@ class APIGateway:
         Credit for most of the function code goes to GitHub user AJRenold:
         https://github.com/boto/boto3/issues/572#issuecomment-209693915
         '''
+        
+        # Ensure an API with the same name has not already been created.
+        rest_apis = self.api.get_rest_apis()['items']
+        if self.api_name in map(lambda x: x['name'], rest_apis):
+            raise ValueError("An API gateway named '{}' already exists under your current AWS account.".format(self.api_name))
+        
         # Create API and grab API ID + root resource ID
-        lambda_api_id = self.api.create_rest_api(name=api_name,
+        lambda_api_id = self.api.create_rest_api(name=self.api_name,
             endpointConfiguration={
             'types': ['REGIONAL']
             })['id']
@@ -99,13 +106,13 @@ class APIGateway:
             restApiId=lambda_api_id,
             stageName='stage')
 
-    def delete_gateway(self, api_name):
+    def delete_gateway(self):
         '''
         Delete the REST API with the given name.
         '''
         rest_apis = self.api.get_rest_apis()['items']
         for rest_api in rest_apis:
-            if rest_api['name'] == api_name:
+            if rest_api['name'] == self.api_name:
                 self.api.delete_rest_api(restApiId=rest_api['id'])
                 print("API Gateway '{}' deleted.".format(rest_api['name']))
 
