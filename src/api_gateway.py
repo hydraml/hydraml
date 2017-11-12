@@ -1,18 +1,20 @@
 import boto3, uuid
 from botocore.exceptions import ClientError
 '''
-Wrapper class for working with AWS APIGateway. Abstracts details of
+Wrapper class for working with AWS API Gateway. Abstracts details of
 boto3 package for the manager class.
 Todo:
-    * Example todo
-    * Modify write_model() to input data blob instead of file
+    * Review/agree on whether function_name should be the REST API path
+    * Rename functions tp "create/delete_api"?
+    * Enforce distinct REST API names?
 '''
 class APIGateway:
 
     def __init__(self):
         '''
         Constructor will then instantiate the boto3 client and retrieve
-        the region name using the boto3.session.Session class
+        the region name using the boto3.session.Session class. A Lambda
+        client is needed to provide trigger permission to the REST API.
         '''
         self.api = boto3.client('apigateway')
         self.aws_lambda = boto3.client('lambda')
@@ -22,14 +24,19 @@ class APIGateway:
 
     def create_gateway(self, function_name, api_name):
         '''
+        Create an API Gateway REST API, and integrate as a trigger for
+        the given Lambda function. The Lambda function's name will be
+        the path on the REST API that will be called.
+
         Credit for most of the function code goes to GitHub user AJRenold:
         https://github.com/boto/boto3/issues/572#issuecomment-209693915
         '''
         # Create API and grab API ID + root resource ID
         lambda_api_id = self.api.create_rest_api(name=api_name,
-                endpointConfiguration={
-                    'types': ['REGIONAL']
-                })['id']
+            endpointConfiguration={
+            'types': ['REGIONAL']
+            })['id']
+        
         root_resource_id = self.api.get_resources(restApiId=lambda_api_id)['items'][0]['id']
 
         ## create resource
@@ -93,6 +100,9 @@ class APIGateway:
             stageName='stage')
 
     def delete_gateway(self, api_name):
+        '''
+        Delete the REST API with the given name.
+        '''
         rest_apis = self.api.get_rest_apis()['items']
         for rest_api in rest_apis:
             if rest_api['name'] == api_name:
