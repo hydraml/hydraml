@@ -8,7 +8,7 @@ class Manager:
 
     def __init__(self, project_name, model_name, deploy_bucket=None, function_name=None, runtime="python3.6"):
         self.project_name = project_name
-        self.model_name = model_name # add file extenstion!
+        self.model_name = "{}.mdl".format(model_name) # add file extenstion!
         self.deploy_bucket = deploy_bucket
         self.function_name = function_name
         self.runtime = runtime
@@ -25,6 +25,7 @@ class Manager:
         # need APIGateway
         # Return service class?
         self.s3.create_if_not_exists()
+        model = self.serialize_model(model)
         self.s3.upload_model(model, self.model_name)
         self.aws_lambda.deploy_function(self.s3.get_bucket_name(), self.model_name)
 

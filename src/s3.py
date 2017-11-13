@@ -61,7 +61,7 @@ class S3:
         Uploades a trained model to the S3 bucket, if a model with the
         specified name does not already exists.
         '''
-
+        
         self.s3.put_object(Bucket=self.bucket_name, Key=model_name, Body=model)
 
     def upload_function(self, function, function_name):
