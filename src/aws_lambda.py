@@ -25,6 +25,7 @@ class AWSLambda:
             self.s3 = None
 
     def deploy_function(self, model_bucket_name, model_name, role=None):
+        self.set_role(role)
         self.client.create_function(
             FunctionName=self.project_name,
             Runtime=self.runtime,
@@ -39,8 +40,23 @@ class AWSLambda:
             },
         )
 
-    def set_role(self):
-        self.role = None
+    def get_standard_role(self):
+        role_name = 'ml-lambda-role
+        iam = boto3.client('iam')
+        if role_name not in iam.list_roles():
+            res = iam.create_role(RoleName=role_name,
+                            AssumeRolePolicyDocument='?')
+            return res["Role"]["Arn"]
+        else:
+            return iam.get_role(RoleName=role_name)["Role"]["Arn"]
+
+
+
+    def set_role(self, role=None):
+        if role:
+            self.role = role
+        else:
+            self.role = self.get_standard_role()
 
     def destroy_function(self):
         self.client.delete_function(FunctionName=self.project_name)
