@@ -9,6 +9,7 @@ import numpy as np
 def get_model():
     bucket = boto3.resource('s3').Bucket("{}".format(os.environ.get('bucket_name')))
     model = bucket.Object("{}".format(os.environ.get('model_name'))).get()
+    #probably need to read this in as an sk or tf object
     return model
 
 

@@ -59,4 +59,4 @@ class AWSLambda:
             raise NameError("function_name must end in .zip")
 
         function_data = open(self.function_path)
-        self.s3.upload_function(function_data self.function_name)
+        self.s3.upload_function(function_data, self.function_name)

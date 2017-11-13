@@ -47,7 +47,13 @@ class S3:
                 else:
                     print(e)
 
+    def destroy():
+        objects = [{'Key': obj.key} for obj in self.bucket.objects.all()]
+        self.bucket.delete_objects(Delete={'Objects': objects})
+        self.bucket.delete()
+
     def get_bucket_name(self):
+        # rewrite this properly as getter
         return self.bucket_name
 
     def upload_model(self, model, model_name):
